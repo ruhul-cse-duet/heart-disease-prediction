@@ -1,91 +1,84 @@
 import streamlit as st
 import pandas as pd
+from sklearn.preprocessing import LabelEncoder
+import os
 
-# Feature preparation for scaling
-def prepare_features_for_scaling(df):
-    """
-    Prepare numerical features from the dataset for standard scaling
-    """
+
+# Load sample data for feature names
+@st.cache_data
+def load_sample_data():
     try:
-        # Create a copy to avoid modifying original
-        data = df.copy()
+        # Try different possible locations for the dataset
+        possible_paths = [
+            'dataset/CVD_2021_BRFSS.csv',
+            './dataset/CVD_2021_BRFSS.csv'
+        ]
 
-        # Remove target variable if present
-        if 'Heart_Disease' in data.columns:
-            data = data.drop('Heart_Disease', axis=1)
+        for path in possible_paths:
+            if os.path.exists(path):
+                df = pd.read_csv(path)
+                return df
 
-        # Encode categorical variables first
-        from sklearn.preprocessing import LabelEncoder
-        categorical_columns = data.select_dtypes(include=['object']).columns
-
-        for col in categorical_columns:
-            le = LabelEncoder()
-            data[col] = le.fit_transform(data[col].astype(str))
-
-        # Get numerical features (including encoded categoricals)
-        numerical_features = data.select_dtypes(include=['float64', 'int64', 'int32', 'float32']).fillna(0)
-
-        return numerical_features
+        raise FileNotFoundError("CVD_2021_BRFSS.csv not found in any expected location")
 
     except Exception as e:
-        st.error(f"Error preparing features for scaling: {e}")
+        st.error(f"Error loading dataset: {e}")
         return None
-
 
 # Enhanced preprocessing function with standard scaling---------------------
-def preprocess_input_with_scaling(data, sample_df, scaler=None):
+def preprocess_input_with_scaling(user_input):
     """
-    Preprocess input data with proper encoding and standard scaling for LightGBM model
+    Prepare a single-row DataFrame for the trained LightGBM model.
+    - Drop target column
+    - Label-encode categorical features (fitted on sample_df)
+    - Keep exact feature order the model was trained on
     """
-    try:
-        processed_data = data.copy()
+    df = load_sample_data()
+    sample_df = df.copy()
+    if sample_df is None or not isinstance(sample_df, pd.DataFrame):
+        raise ValueError("sample_df is required and must be a DataFrame")
 
-        # Handle categorical variables based on sample data
-        from sklearn.preprocessing import LabelEncoder
-        categorical_columns = sample_df.select_dtypes(include=['object']).columns
+    # 1) Training-time feature frame (X) = sample_df without target
+    if "Heart_Disease" in sample_df.columns:
+        X_sample = sample_df.drop(columns=['Heart_Disease'])
+    else:
+        X_sample = sample_df.copy()
 
-        # Remove target column from categorical processing
-        categorical_columns = [col for col in categorical_columns if col != 'Heart_Disease']
+    # 2) Build the single-row input
+    user_df = pd.DataFrame([user_input])
 
-        for col in categorical_columns:
-            if col in processed_data:
-                # Get unique values from sample data
-                unique_values = sample_df[col].unique()
-                if processed_data[col] not in unique_values:
-                    # Use the most common value as default
-                    processed_data[col] = sample_df[col].mode()[0]
+    # 3) Categorical columns (object dtype) from X_sample only
+    cat_cols = X_sample.select_dtypes(include=["object"]).columns.tolist()
 
-                # Encode the categorical variable
-                le = LabelEncoder()
-                le.fit(sample_df[col].astype(str))
-                try:
-                    processed_data[col] = le.transform([str(processed_data[col])])[0]
-                except:
-                    processed_data[col] = 0  # Default for unknown categories
+    # 4) Label-encode each categorical col using the mapping from sample data
+    for col in cat_cols:
+        le = LabelEncoder()
+        # fit on sample
+        X_sample[col] = X_sample[col].astype(str)
+        le.fit(X_sample[col])
 
-        # Create DataFrame with the processed data
-        input_df = pd.DataFrame([processed_data])
+        # transform only if user provided that column
+        if col in user_df.columns:
+            user_df[col] = le.transform(user_df[col].astype(str))
+        else:
+            mode_val = X_sample[col].mode(dropna=True)
+            fill_val = le.transform([str(mode_val.iloc[0])])[0] if not mode_val.empty else 0
+            user_df[col] = fill_val
 
-        # Ensure all columns from training are present
-        training_columns = [col for col in sample_df.columns if col != 'Heart_Disease']
-        for col in training_columns:
-            if col not in input_df.columns:
-                input_df[col] = 0
+    # 5) Numeric columns → surerity check numeric dtype
+    num_cols = [c for c in X_sample.columns if c not in cat_cols]
+    for col in num_cols:
+        if col in user_df.columns:
+            user_df[col] = pd.to_numeric(user_df[col], errors="coerce")
+        else:
+            user_df[col] = pd.to_numeric(X_sample[col], errors="coerce").median()
 
-        # Reorder columns to match training data
-        input_df = input_df[training_columns]
+    # 6) Missing numeric impute (median)
+    for col in num_cols:
+        if user_df[col].isna().any():
+            user_df[col] = user_df[col].fillna(pd.to_numeric(X_sample[col], errors="coerce").median())
 
-        # Apply standard scaling if scaler is provided
-        if scaler is not None:
-            # Only scale numerical features (after encoding)
-            numerical_features = input_df.select_dtypes(include=['float64', 'int64', 'int32', 'float32'])
+    # 7) Ensure exact training column order
+    user_df = user_df[X_sample.columns.tolist()]
 
-            if len(numerical_features.columns) > 0:
-                scaled_features = scaler.transform(numerical_features)
-                input_df[numerical_features.columns] = scaled_features
-
-        return input_df
-
-    except Exception as e:
-        st.error(f"Error in preprocessing with scaling: {e}")
-        return None
+    return user_df

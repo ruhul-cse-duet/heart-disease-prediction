@@ -27,13 +27,11 @@ except ImportError:
 sys.path.append(os.path.join(os.path.dirname(__file__), 'Data preprocess'))
 # Import preprocess module function
 try:
-    from preprocess_scaler import prepare_features_for_scaling, preprocess_input_with_scaling
+    from preprocess_scaler import preprocess_input_with_scaling
 
 except ImportError:
     # Fallback if module not found
-    def prepare_features_for_scaling(df):
-        return {"error": "prepare_features_for_scaling module not found"}
-    def preprocess_input_with_scaling(user_input, sample_df, scaler):
+    def preprocess_input_with_scaling(user_input, sample_df):
         return "preprocess_input_with_scaling module not available"
 
 # Page configuration------------------------------------------------
@@ -51,7 +49,22 @@ def local_css(file_name):
 
 # CSS file imported.............
 local_css("styles/style.css")
+page_bg = """
+<style>
+[data-testid="stAppViewContainer"] {
+    background-color: #A0A3A2; /* light grey-blue */
+}
 
+[data-testid="stHeader"] {
+    background-color: #DADCE6; /* transparent header */
+}
+
+[data-testid="stSidebar"] {
+    background-color: #BAA29E; /* white sidebar */
+}
+</style>
+"""
+st.markdown(page_bg, unsafe_allow_html=True)
 
 # Load model function with error handling for LightGBM
 @st.cache_resource
@@ -89,117 +102,24 @@ def load_model():
         return None, f"Model loading error: {str(e)}"
 
 
-# Load or create scaler for feature standardization  
-@st.cache_resource
-def load_or_create_scaler():
-    """
-    Load existing scaler or create one from the dataset for feature standardization
-    """
-    try:
-        # Try to load existing scaler first
-        try:
-            with open('models/scaler.pkl', 'rb') as file:
-                scaler = pickle.load(file)
-            return scaler, None
-        except:
-            # Create new scaler from dataset
-            #st.info("📊 Creating feature scaler from dataset...")
-            
-            # Load full dataset for proper scaling
-            try:
-                df = pd.read_pickle('dataset/df.pkl')
-            except:
-                df = pd.read_csv('dataset/CVD_2021_BRFSS.csv', nrows=10000)
-            
-            # Prepare numerical features for scaling
-            numerical_features = prepare_features_for_scaling(df)
-            
-            from sklearn.preprocessing import StandardScaler
-            scaler = StandardScaler()
-            scaler.fit(numerical_features)
-            
-            # Save scaler for future use
-            try:
-                import os
-                os.makedirs('models', exist_ok=True)
-                with open('models/scaler.pkl', 'wb') as file:
-                    pickle.dump(scaler, file)
-            except:
-                pass  # Continue even if saving fails
-            
-            return scaler, None
-            
-    except Exception as e:
-        return None, f"Scaler error: {str(e)}"
 
-# Load sample data for feature names
-@st.cache_data
-def load_sample_data():
-    try:
-        # Try different possible locations for the dataset
-        possible_paths = [
-            'dataset/CVD_2021_BRFSS.csv',
-            './dataset/CVD_2021_BRFSS.csv'
-        ]
-        
-        for path in possible_paths:
-            if os.path.exists(path):
-                df = pd.read_csv(path, nrows=1000)
-                return df
-        
-        raise FileNotFoundError("CVD_2021_BRFSS.csv not found in any expected location")
-        
-    except Exception as e:
-        st.error(f"Error loading dataset: {e}")
-        return None
-
-
-# Original preprocessing function (backup)--------------------------
-def preprocess_input(data, sample_df):
-    """Preprocess input data to match model requirements"""
-    processed_data = data.copy()
-    
-    # Handle categorical variables based on sample data
-    categorical_columns = sample_df.select_dtypes(include=['object']).columns
-    
-    for col in categorical_columns:
-        if col in processed_data:
-            # Get unique values from sample data
-            unique_values = sample_df[col].unique()
-            if processed_data[col] not in unique_values:
-                # Use the most common value as default
-                processed_data[col] = sample_df[col].mode()[0]
-    
-    return processed_data
-
+#---------------------Main Function------------------------------------------------------
 def main():
     # Header
-    st.markdown('<h2 class="title-text"">❤️ Heart Disease Prediction System</h2>', unsafe_allow_html=True)
+    st.markdown(
+        '<h2 class="title-text">❤️ Heart Disease Prediction System</h2>',
+        unsafe_allow_html=True)
+
     # Load model, scaler and data
     model, model_error = load_model()
-    scaler, scaler_error = load_or_create_scaler()
-    sample_df = load_sample_data()
-    
-    if sample_df is None:
-        st.error("Unable to load the dataset. Please check if CVD_2021_BRFSS.csv exists.")
-        return
-    
+
     if model is None:
         st.warning(f"⚠️ Model loading error: {model_error}")
         st.info("The app will continue with a demo mode using sample predictions.")
-    else:
-        if scaler is None:
-            st.warning(f"⚠️ Scaler loading error: {scaler_error}")
-            st.info("Model will work but predictions might be less accurate without proper scaling.")
-        # else:
-        #     # st.success("✅ Model and scaler loaded successfully!")
     
-    # Sidebar for user input
+#--------- Sidebar for user input---------------------------------------------------------------------
     st.sidebar.markdown('<p class="sub-header">📝 Patient Information</p>', unsafe_allow_html=True)
-    
-    # Get feature columns (excluding target)
-    feature_columns = [col for col in sample_df.columns if col != 'Heart_Disease']
-    
+
     # Create input fields based on data types
     user_input = {}
     
@@ -252,9 +172,10 @@ def main():
     user_input['Fruit_Consumption'] = st.sidebar.slider('Fruit Consumption (servings per week)', 0, 120, 10)
     user_input['Green_Vegetables_Consumption'] = st.sidebar.slider('Green Vegetables (servings per week)', 0, 120, 8)
     user_input['FriedPotato_Consumption'] = st.sidebar.slider('Fried Potato Consumption (servings per week)', 0, 120, 2)
-    
-    # Main content area
-    col1, col2 = st.columns([2, 1])
+
+
+#---------------------------------- Main content area-----------------------------------------
+    col1, col2 = st.columns([3, 1])
     
     with col1:
         st.markdown('<p class="sub-header">📊 Patient Data Summary</p>', unsafe_allow_html=True)
@@ -263,15 +184,15 @@ def main():
         input_df = pd.DataFrame([user_input])
         st.dataframe(input_df, width='stretch')
         
-        # Prediction button
+#------------ Prediction button--------------------------------------------------------
         st.markdown('<div class="center-button">', unsafe_allow_html=True)
         if st.button('🔍 Predict Heart Disease Risk', type='primary', width=250 ):
             st.markdown('</div>', unsafe_allow_html=True)
             # Make prediction
             try:
                 if model is not None:
-                    # Use enhanced preprocessing with scaling for LightGBM
-                    input_df = preprocess_input_with_scaling(user_input, sample_df, scaler)
+# -----------------Use enhanced preprocessing with scaling for LightGBM--------------------------------
+                    input_df= preprocess_input_with_scaling(user_input)
                     
                     if input_df is not None:
                         # Make prediction with LightGBM model
@@ -284,7 +205,7 @@ def main():
                             st.write("**Feature names:**", list(input_df.columns))
                             st.write("**Scaled features (first 5):**", input_df.iloc[0, :5].tolist())
                             st.write("**Model type:**", type(model).__name__)
-                            st.write("**Scaler status:**", "✅ Applied" if scaler is not None else "❌ Not applied")
+                            #st.write("**Scaler status:**", "✅ Applied" if scaler is not None else "❌ Not applied")
                     else:
                         raise ValueError("Failed to preprocess input data")
                     
@@ -337,7 +258,7 @@ def main():
                         ''', unsafe_allow_html=True)
                         show_treatment = False
                 
-                # Show treatment recommendations if high risk
+                # Show treatment recommendations if high risk..............................
                 if show_treatment:
                     st.markdown('<p class="sub-header">🏥 Comprehensive Treatment Directory</p>', unsafe_allow_html=True)
                     
@@ -369,13 +290,13 @@ def main():
                         emergency_plan = treatment_dir['emergency_planning']
                         st.markdown("#### 🚨 Emergency Action Plan")
                         
-                        col1, col2 = st.columns(2)
-                        with col1:
+                        col3, col4 = st.columns(2)
+                        with col3:
                             st.markdown("**⚠️ Warning Signs:**")
                             for sign in emergency_plan['action_plan']['warning_signs']:
                                 st.markdown(f"• {sign}")
                         
-                        with col2:
+                        with col4:
                             st.markdown("**📞 Immediate Response:**")
                             for response in emergency_plan['action_plan']['immediate_response']:
                                 st.markdown(f"• {response}")
@@ -432,15 +353,20 @@ def main():
                         st.markdown('<div class="treatment-box">', unsafe_allow_html=True)
                         lifestyle = treatment_dir['lifestyle_interventions']
                         st.markdown(f"**Priority:** {lifestyle['priority']} | **Timeframe:** {lifestyle['timeframe']}")
-                        
+
                         st.markdown("#### 🏃‍♂️ Physical Activity Program")
                         for activity in lifestyle['categories']['physical_activity']:
-                            st.markdown(f"""
-                            **{activity['activity']}**
-                            - *Recommendation:* {activity['recommendation']}
-                            - *Examples:* {activity['examples']}
-                            - *Progression:* {activity['progression']}
-                            """)
+                            lines = [
+                                f"**{activity.get('activity', 'Activity')}**",
+                                f"- *Recommendation:* {activity.get('recommendation', 'As advised')}",
+                                f"- *Examples:* {activity.get('examples', '—')}",
+                            ]
+                            # optional fields
+                            if 'progression' in activity:
+                                lines.append(f"- *Progression:* {activity['progression']}")
+                            if 'benefits' in activity:
+                                lines.append(f"- *Benefits:* {activity['benefits']}")
+                            st.markdown("\n".join(lines))
                         
                         st.markdown("#### 🚭 Smoking Cessation")
                         for method in lifestyle['categories']['smoking_cessation']:
@@ -457,14 +383,14 @@ def main():
                         nutrition = treatment_dir['nutrition_therapy']
                         st.markdown("#### 🥗 Nutrition Therapy")
                         
-                        col1, col2 = st.columns(2)
-                        with col1:
+                        col3, col4 = st.columns(2)
+                        with col3:
                             st.markdown("**Mediterranean Diet:**")
                             med_diet = nutrition['dietary_approaches']['mediterranean_diet']
                             st.markdown(f"*{med_diet['description']}*")
                             st.markdown(f"**Benefits:** {med_diet['benefits']}")
                             
-                        with col2:
+                        with col4:
                             st.markdown("**DASH Diet:**")
                             dash_diet = nutrition['dietary_approaches']['dash_diet']
                             st.markdown(f"*{dash_diet['description']}*")
@@ -520,13 +446,18 @@ def main():
                                 st.markdown(f"- *Apps:* {intervention['apps']}")
                             if 'purpose' in intervention:
                                 st.markdown(f"- *Purpose:* {intervention['purpose']}")
+                            if 'options' in intervention:
+                                st.markdown(f"- *Options:* {intervention['options']}")
+                            if 'benefits' in intervention:
+                                st.markdown(f'*benefits:* {intervention['benefits']}' )
                         
                         st.markdown('</div>', unsafe_allow_html=True)
                     
                     # Critical warning
-                    st.error("⚠️ **CRITICAL DISCLAIMER**: This treatment directory is for educational purposes only. All medical decisions must be made in consultation with qualified healthcare professionals. Do not start, stop, or modify any treatments without medical supervision.")
-                    
-                    # Download treatment plan
+                    st.markdown("⚠️ **CRITICAL DISCLAIMER**: This treatment directory is for educational purposes only. All medical decisions must be made in consultation with qualified healthcare professionals. Do not start, stop, or modify any treatments without medical supervision.")
+
+
+#----------------------------# Download treatment plan--------------------------------------
                     st.markdown("---")
                     st.markdown("### 📄 Download Personal Treatment Plan")
                     
@@ -555,36 +486,39 @@ def main():
                 
             except Exception as e:
                 st.error(f"Error making prediction: {e}")
-    
+
+#-----------------About Section---------------------------------------------------
     with col2:
         st.markdown('<p class="sub-header">ℹ️ About</p>', unsafe_allow_html=True)
-        st.info("""
-        This Heart Disease Prediction System uses machine learning to assess the risk of heart disease based on various health and lifestyle factors.
-        
-        **Features:**
-        - Comprehensive health assessment
-        - Real-time risk prediction
-        - Treatment recommendations
-        - Lifestyle guidance
-        
-        **Disclaimer:**
-        This tool is for educational purposes only and should not replace professional medical advice.
-        """)
+        st.markdown("""<div class="sub-header-about">
+                <p>This Heart Disease Prediction System uses machine learning to 
+                assess the risk of heart disease based on various health and lifestyle factors.</p>
+                <h4>Features</h4>
+                <ol>
+                    <li>Comprehensive health assessment</li>
+                    <li>Real-time risk prediction</li>
+                    <li>Treatment recommendations</li>
+                    <li>Lifestyle guidance</li>
+                </ol>
+                <p><strong>Disclaimer:</strong> This tool is for educational purposes only and 
+                should not replace professional medical advice.</p>
+        </div>""", unsafe_allow_html=True)
         
         # Model information
         if model is not None:
             st.success("✅ AI Model Loaded Successfully")
         else:
             st.warning("⚠️ Running in Demo Mode")
-        
+
+
+        df = pd.read_csv("./dataset/CVD_2021_BRFSS.csv")
         # Statistics
-        st.markdown("### 📊 Dataset Statistics")
-        if sample_df is not None:
-            total_records = len(sample_df)
-            heart_disease_cases = len(sample_df[sample_df['Heart_Disease'] == 'Yes'])
-            st.metric("Total Records", f"{total_records:,}")
-            st.metric("Heart Disease Cases", f"{heart_disease_cases:,}")
-            st.metric("Risk Rate", f"{(heart_disease_cases/total_records)*100:.1f}%")
+        st.markdown("##### 📊 Dataset Statistics")
+        total_records = len(df)
+        heart_disease_cases = len(df[df['Heart_Disease'] == 'Yes'])
+        st.metric("Total Records", f"{total_records:,}")
+        st.metric("Heart Disease Cases", f"{heart_disease_cases:,}")
+        st.metric("Risk Rate", f"{(heart_disease_cases/total_records)*100:.1f}%")
 
 if __name__ == "__main__":
     main()

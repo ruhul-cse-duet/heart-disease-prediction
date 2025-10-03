@@ -354,15 +354,18 @@ def generate_treatment_plan_pdf(patient_data, treatment_dir):
         
         Physical Activity Program:
     """
-    
+
     for activity in treatment_dir['lifestyle_interventions']['categories']['physical_activity']:
         plan_text += f"""
-        - {activity['activity']}
-          Recommendation: {activity['recommendation']}
-          Examples: {activity['examples']}
-          Progression: {activity['progression']}
+        - {activity.get('activity', 'Activity')}
+          Recommendation: {activity.get('recommendation', 'As advised')}
+          Examples: {activity.get('examples', '—')}
         """
-    
+        if 'progression' in activity:
+            plan_text += f"      Progression: {activity['progression']}\n"
+        if 'benefits' in activity:
+            plan_text += f"      Benefits: {activity['benefits']}\n"
+
     plan_text += f"""
     
         NUTRITION PLAN:
