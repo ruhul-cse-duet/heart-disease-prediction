@@ -6,8 +6,10 @@ from datetime import datetime
 import os
 import warnings
 import sys
+warnings.filterwarnings('ignore')
 
-# Add Treatment directory to path
+
+# Add Treatment directory to path-----------------------------------------------
 sys.path.append(os.path.join(os.path.dirname(__file__), 'Treatment'))
 
 # Import treatment module
@@ -21,9 +23,20 @@ except ImportError:
     def generate_treatment_plan_pdf(patient_data, treatment_dir):
         return "Treatment module not available - cannot generate plan"
 
-warnings.filterwarnings('ignore')
+# Add Data preprocess directory to path-----------------------------------------------
+sys.path.append(os.path.join(os.path.dirname(__file__), 'Data preprocess'))
+# Import preprocess module function
+try:
+    from preprocess_scaler import prepare_features_for_scaling, preprocess_input_with_scaling
 
-# Page configuration
+except ImportError:
+    # Fallback if module not found
+    def prepare_features_for_scaling(df):
+        return {"error": "prepare_features_for_scaling module not found"}
+    def preprocess_input_with_scaling(user_input, sample_df, scaler):
+        return "preprocess_input_with_scaling module not available"
+
+# Page configuration------------------------------------------------
 st.set_page_config(
     page_title="Heart Disease Prediction System",
     page_icon="❤️",
@@ -31,129 +44,14 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Custom CSS for better styling
-st.markdown("""
-<style>
-    
-    .main-header {
-        font-size: 10rem;
-        color: #e74c3c;
-        text-align: center;
-        margin-bottom: 3rem;
-        font-weight: bold;
-    }
-    .sub-header {
-        font-size: 3rem;
-        color: #D93074;
-        margin-bottom: 1.5rem;
-    }
-    .prediction-box {
-        padding: 1.5rem;
-        border-radius: 10px;
-        margin: 1rem 0;
-        text-align: center;
-        font-size: 1.2rem;
-        font-weight: bold;
-    }
-    .positive-prediction {
-        background-color: #ffebee;
-        color: #c62828;
-        border: 2px solid #ef5350;
-        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-    }
-    .negative-prediction {
-        background-color: #e8f5e8;
-        color: #2e7d32;
-        border: 2px solid #66bb6a;
-        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-    }
-    .treatment-box {
-        background-color: #f8f9fa;
-        border: 1px solid #dee2e6;
-        border-radius: 8px;
-        padding: 1.2rem;
-        margin: 0.5rem 0;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-    }
-    
-    /* Tab styling */
-    .stTabs [data-baseweb="tab-list"] {
-        gap: 8px;
-    }
-    
-    .stTabs [data-baseweb="tab"] {
-        height: 50px;
-        padding-left: 20px;
-        padding-right: 20px;
-        border-radius: 8px;
-        background-color: #f1f3f4;
-        border: 1px solid #e0e0e0;
-    }
-    
-    .stTabs [aria-selected="true"] {
-        background-color: #e74c3c;
-        color: white;
-        border: 1px solid #e74c3c;
-    }
-    
-    /* Priority badges */
-    .priority-immediate {
-        background-color: #dc3545;
-        color: white;
-        padding: 2px 8px;
-        border-radius: 12px;
-        font-size: 0.8rem;
-        font-weight: bold;
-    }
-    
-    .priority-high {
-        background-color: #fd7e14;
-        color: white;
-        padding: 2px 8px;
-        border-radius: 12px;
-        font-size: 0.8rem;
-        font-weight: bold;
-    }
-    
-    .priority-essential {
-        background-color: #198754;
-        color: white;
-        padding: 2px 8px;
-        border-radius: 12px;
-        font-size: 0.8rem;
-        font-weight: bold;
-    }
-    
-    .priority-ongoing {
-        background-color: #6f42c1;
-        color: white;
-        padding: 2px 8px;
-        border-radius: 12px;
-        font-size: 0.8rem;
-        font-weight: bold;
-    }
-    
-    /* Enhanced card styling */
-    .treatment-card {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        padding: 1rem;
-        border-radius: 10px;
-        margin: 0.5rem 0;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-    }
-    
-    .emergency-card {
-        background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
-        color: white;
-        padding: 1rem;
-        border-radius: 10px;
-        margin: 0.5rem 0;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-        border-left: 5px solid #ff3838;
-    }
-</style>
-""", unsafe_allow_html=True)
+# Custom CSS for better styling--------------------------------
+def local_css(file_name):
+    with open(file_name) as f:
+        st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
+
+# CSS file imported.............
+local_css("styles/style.css")
+
 
 # Load model function with error handling for LightGBM
 @st.cache_resource
@@ -190,6 +88,7 @@ def load_model():
     except Exception as e:
         return None, f"Model loading error: {str(e)}"
 
+
 # Load or create scaler for feature standardization  
 @st.cache_resource
 def load_or_create_scaler():
@@ -210,7 +109,7 @@ def load_or_create_scaler():
             try:
                 df = pd.read_pickle('dataset/df.pkl')
             except:
-                df = pd.read_csv('dataset/CVD_2021_BRFSS.csv', nrows=100000)
+                df = pd.read_csv('dataset/CVD_2021_BRFSS.csv', nrows=10000)
             
             # Prepare numerical features for scaling
             numerical_features = prepare_features_for_scaling(df)
@@ -254,97 +153,8 @@ def load_sample_data():
         st.error(f"Error loading dataset: {e}")
         return None
 
-# Treatment functions are imported from the Treatment module
 
-# Feature preparation for scaling
-def prepare_features_for_scaling(df):
-    """
-    Prepare numerical features from the dataset for standard scaling
-    """
-    try:
-        # Create a copy to avoid modifying original
-        data = df.copy()
-        
-        # Remove target variable if present
-        if 'Heart_Disease' in data.columns:
-            data = data.drop('Heart_Disease', axis=1)
-        
-        # Encode categorical variables first
-        from sklearn.preprocessing import LabelEncoder
-        categorical_columns = data.select_dtypes(include=['object']).columns
-        
-        for col in categorical_columns:
-            le = LabelEncoder()
-            data[col] = le.fit_transform(data[col].astype(str))
-        
-        # Get numerical features (including encoded categoricals)
-        numerical_features = data.select_dtypes(include=['float64', 'int64', 'int32', 'float32']).fillna(0)
-        
-        return numerical_features
-        
-    except Exception as e:
-        st.error(f"Error preparing features for scaling: {e}")
-        return None
-
-# Enhanced preprocessing function with standard scaling
-def preprocess_input_with_scaling(data, sample_df, scaler=None):
-    """
-    Preprocess input data with proper encoding and standard scaling for LightGBM model
-    """
-    try:
-        processed_data = data.copy()
-        
-        # Handle categorical variables based on sample data
-        from sklearn.preprocessing import LabelEncoder
-        categorical_columns = sample_df.select_dtypes(include=['object']).columns
-        
-        # Remove target column from categorical processing
-        categorical_columns = [col for col in categorical_columns if col != 'Heart_Disease']
-        
-        for col in categorical_columns:
-            if col in processed_data:
-                # Get unique values from sample data
-                unique_values = sample_df[col].unique()
-                if processed_data[col] not in unique_values:
-                    # Use the most common value as default
-                    processed_data[col] = sample_df[col].mode()[0]
-                
-                # Encode the categorical variable
-                le = LabelEncoder()
-                le.fit(sample_df[col].astype(str))
-                try:
-                    processed_data[col] = le.transform([str(processed_data[col])])[0]
-                except:
-                    processed_data[col] = 0  # Default for unknown categories
-        
-        # Create DataFrame with the processed data
-        input_df = pd.DataFrame([processed_data])
-        
-        # Ensure all columns from training are present
-        training_columns = [col for col in sample_df.columns if col != 'Heart_Disease']
-        for col in training_columns:
-            if col not in input_df.columns:
-                input_df[col] = 0
-        
-        # Reorder columns to match training data
-        input_df = input_df[training_columns]
-        
-        # Apply standard scaling if scaler is provided
-        if scaler is not None:
-            # Only scale numerical features (after encoding)
-            numerical_features = input_df.select_dtypes(include=['float64', 'int64', 'int32', 'float32'])
-            
-            if len(numerical_features.columns) > 0:
-                scaled_features = scaler.transform(numerical_features)
-                input_df[numerical_features.columns] = scaled_features
-        
-        return input_df
-        
-    except Exception as e:
-        st.error(f"Error in preprocessing with scaling: {e}")
-        return None
-
-# Original preprocessing function (backup)
+# Original preprocessing function (backup)--------------------------
 def preprocess_input(data, sample_df):
     """Preprocess input data to match model requirements"""
     processed_data = data.copy()
@@ -364,7 +174,7 @@ def preprocess_input(data, sample_df):
 
 def main():
     # Header
-    st.markdown('<h3 class="main-header">❤️ Heart Disease Prediction System</h3>', unsafe_allow_html=True)
+    st.markdown('<h2 class="title-text"">❤️ Heart Disease Prediction System</h2>', unsafe_allow_html=True)
     # Load model, scaler and data
     model, model_error = load_model()
     scaler, scaler_error = load_or_create_scaler()
@@ -454,7 +264,9 @@ def main():
         st.dataframe(input_df, width='stretch')
         
         # Prediction button
-        if st.button('🔍 Predict Heart Disease Risk', type='primary', width='stretch'):
+        st.markdown('<div class="center-button">', unsafe_allow_html=True)
+        if st.button('🔍 Predict Heart Disease Risk', type='primary', width=250 ):
+            st.markdown('</div>', unsafe_allow_html=True)
             # Make prediction
             try:
                 if model is not None:

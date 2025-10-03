@@ -9,8 +9,8 @@ with open("requirements.txt", "r", encoding="utf-8") as fh:
 setup(
     name="heart-disease-prediction",
     version="1.0.0",
-    author="Your Name",
-    author_email="your.email@example.com",
+    author="Ruhul Amin",
+    author_email="ruhul.cse.duet@gmail.com",
     description="A Streamlit web application for heart disease prediction using machine learning",
     long_description=long_description,
     long_description_content_type="text/markdown",

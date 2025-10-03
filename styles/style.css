@@ -1,0 +1,137 @@
+.center-button {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 20px;
+    margin-bottom: 20px;
+    font-size : 15px;
+
+}
+.title-text {
+    font-size: 30px;
+    font-weight: bold;
+    color: #2E86C1;
+    text-align: center;
+}
+
+.main-header {
+    font-size: 10rem;
+    color: #e74c3c;
+    text-align: center;
+    margin-bottom: 3rem;
+    font-weight: bold;
+    }
+
+.sub-header {
+    font-size: 3rem;
+    color: #D93074;
+    margin-bottom: 1.5rem;
+    }
+
+.prediction-box {
+     padding: 1.5rem;
+     border-radius: 10px;
+     margin: 1rem 0;
+     text-align: center;
+     font-size: 1.2rem;
+     font-weight: bold;
+ }
+
+.positive-prediction {
+    background-color: #ffebee;
+    color: #c62828;
+    border: 2px solid #ef5350;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+
+.negative-prediction {
+        background-color: #e8f5e8;
+        color: #2e7d32;
+        border: 2px solid #66bb6a;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+
+.treatment-box {
+     background-color: #f8f9fa;
+     border: 1px solid #dee2e6;
+     border-radius: 8px;
+     padding: 1.2rem;
+     margin: 0.5rem 0;
+     box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  }
+
+/* Tab styling */
+.stTabs [data-baseweb="tab-list"] {
+        gap: 8px;
+    }
+
+.stTabs [data-baseweb="tab"] {
+     height: 50px;
+     padding-left: 20px;
+     padding-right: 20px;
+     border-radius: 8px;
+     background-color: #f1f3f4;
+     border: 1px solid #e0e0e0;
+    }
+
+.stTabs [aria-selected="true"] {
+        background-color: #e74c3c;
+        color: white;
+        border: 1px solid #e74c3c;
+    }
+
+/* Priority badges */
+.priority-immediate {
+        background-color: #dc3545;
+        color: white;
+        padding: 2px 8px;
+        border-radius: 12px;
+        font-size: 0.8rem;
+        font-weight: bold;
+}
+
+.priority-high {
+        background-color: #fd7e14;
+        color: white;
+        padding: 2px 8px;
+        border-radius: 12px;
+        font-size: 0.8rem;
+        font-weight: bold;
+}
+
+.priority-essential {
+        background-color: #198754;
+        color: white;
+        padding: 2px 8px;
+        border-radius: 12px;
+        font-size: 0.8rem;
+        font-weight: bold;
+}
+
+.priority-ongoing {
+        background-color: #6f42c1;
+        color: white;
+        padding: 2px 8px;
+        border-radius: 12px;
+        font-size: 0.8rem;
+        font-weight: bold;
+    }
+/* Enhanced card styling */
+.treatment-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 1rem;
+        border-radius: 10px;
+        margin: 0.5rem 0;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+
+.emergency-card {
+        background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+        color: white;
+        padding: 1rem;
+        border-radius: 10px;
+        margin: 0.5rem 0;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        border-left: 5px solid #ff3838;
+    }

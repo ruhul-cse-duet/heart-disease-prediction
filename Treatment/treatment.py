@@ -281,156 +281,154 @@ def generate_treatment_plan_pdf(patient_data, treatment_dir):
     from datetime import datetime
     
     plan_text = f"""
-PERSONALIZED HEART DISEASE TREATMENT PLAN
-{'='*50}
-
-PATIENT INFORMATION:
-- General Health: {patient_data.get('General_Health', 'N/A')}
-- Age Category: {patient_data.get('Age_Category', 'N/A')}
-- BMI: {patient_data.get('BMI', 'N/A'):.1f if 'BMI' in patient_data else 'N/A'}
-- Exercise: {patient_data.get('Exercise', 'N/A')}
-- Smoking History: {patient_data.get('Smoking_History', 'N/A')}
-
-EMERGENCY ACTIONS (IMMEDIATE PRIORITY)
-{'='*40}
-Timeframe: {treatment_dir['emergency']['timeframe']}
-
-Emergency Actions:
-"""
+        PERSONALIZED HEART DISEASE TREATMENT PLAN
+        {'='*50}
+        
+        PATIENT INFORMATION:
+        - General Health: {patient_data.get('General_Health', 'N/A')}
+        - Age Category: {patient_data.get('Age_Category', 'N/A')}
+        - BMI: {patient_data.get('BMI', 'N/A'):.1f if 'BMI' in patient_data else 'N/A'}
+        - Exercise: {patient_data.get('Exercise', 'N/A')}
+        - Smoking History: {patient_data.get('Smoking_History', 'N/A')}
+        
+        EMERGENCY ACTIONS (IMMEDIATE PRIORITY)
+        {'='*40}
+        Timeframe: {treatment_dir['emergency']['timeframe']}
+        
+        Emergency Actions:
+    """
     
     for action in treatment_dir['emergency']['actions']:
         plan_text += f"""
-- {action['action']}
-  Condition: {action['condition']}
-  Urgency: {action['urgency']}
-"""
+        - {action['action']}
+          Condition: {action['condition']}
+          Urgency: {action['urgency']}
+        """
     
     plan_text += f"""
 
-WARNING SIGNS TO WATCH FOR:
-"""
+        WARNING SIGNS TO WATCH FOR:
+    """
     for sign in treatment_dir['emergency_planning']['action_plan']['warning_signs']:
         plan_text += f"• {sign}\n"
     
     plan_text += f"""
 
-IMMEDIATE RESPONSE IF SYMPTOMS OCCUR:
-"""
+        IMMEDIATE RESPONSE IF SYMPTOMS OCCUR:
+    """
     for response in treatment_dir['emergency_planning']['action_plan']['immediate_response']:
         plan_text += f"• {response}\n"
     
     plan_text += f"""
 
-DIAGNOSTIC TESTS (HIGH PRIORITY)
-{'='*35}
-Timeframe: {treatment_dir['diagnostic_tests']['timeframe']}
-
-Cardiac Assessment Tests:
-"""
+        DIAGNOSTIC TESTS (HIGH PRIORITY)
+        {'='*35}
+        Timeframe: {treatment_dir['diagnostic_tests']['timeframe']}
+        
+        Cardiac Assessment Tests:
+    """
     
     for test in treatment_dir['diagnostic_tests']['categories']['cardiac_assessment']:
         plan_text += f"""
-- {test['test']}
-  Purpose: {test['purpose']}
-  Frequency: {test['frequency']}
-"""
+        - {test['test']}
+          Purpose: {test['purpose']}
+          Frequency: {test['frequency']}
+        """
     
     plan_text += f"""
 
-Blood Work Tests:
-"""
+        Blood Work Tests:
+    """
     for test in treatment_dir['diagnostic_tests']['categories']['blood_work']:
         plan_text += f"""
-- {test['test']}
-  Purpose: {test['purpose']}
-  Frequency: {test['frequency']}
-"""
+        - {test['test']}
+          Purpose: {test['purpose']}
+          Frequency: {test['frequency']}
+        """
     
     plan_text += f"""
 
-LIFESTYLE INTERVENTIONS (ESSENTIAL)
-{'='*35}
-Timeframe: {treatment_dir['lifestyle_interventions']['timeframe']}
-
-Physical Activity Program:
-"""
+        LIFESTYLE INTERVENTIONS (ESSENTIAL)
+        {'='*35}
+        Timeframe: {treatment_dir['lifestyle_interventions']['timeframe']}
+        
+        Physical Activity Program:
+    """
     
     for activity in treatment_dir['lifestyle_interventions']['categories']['physical_activity']:
         plan_text += f"""
-- {activity['activity']}
-  Recommendation: {activity['recommendation']}
-  Examples: {activity['examples']}
-  Progression: {activity['progression']}
-"""
+        - {activity['activity']}
+          Recommendation: {activity['recommendation']}
+          Examples: {activity['examples']}
+          Progression: {activity['progression']}
+        """
     
     plan_text += f"""
-
-NUTRITION PLAN:
-Mediterranean Diet Benefits: {treatment_dir['nutrition_therapy']['dietary_approaches']['mediterranean_diet']['benefits']}
-
-Foods to Increase:
-"""
+    
+        NUTRITION PLAN:
+        Mediterranean Diet Benefits: {treatment_dir['nutrition_therapy']['dietary_approaches']['mediterranean_diet']['benefits']}
+        
+        Foods to Increase:
+    """
     for item in treatment_dir['nutrition_therapy']['specific_recommendations']['increase']:
         plan_text += f"• {item['food']} - {item['frequency']} ({item['benefit']})\n"
     
     plan_text += f"""
-Foods to Limit:
-"""
+        Foods to Limit:
+    """
     for item in treatment_dir['nutrition_therapy']['specific_recommendations']['limit']:
         plan_text += f"• {item['food']} - {item['limit']} ({item['reason']})\n"
     
     plan_text += f"""
 
-MONITORING SCHEDULE (ONGOING)
-{'='*30}
-
-Vital Signs to Monitor:
-"""
+        MONITORING SCHEDULE (ONGOING)
+        {'='*30}
+        
+        Vital Signs to Monitor:
+    """
     for vital in treatment_dir['monitoring_schedule']['vital_signs']:
         plan_text += f"""
-- {vital['parameter']}
-  Frequency: {vital['frequency']}
-  Target: {vital['target']}
-"""
+        - {vital['parameter']}
+          Frequency: {vital['frequency']}
+          Target: {vital['target']}
+        """
         if 'device' in vital:
             plan_text += f"  Device: {vital['device']}\n"
     
     plan_text += f"""
-
-Laboratory Tests Schedule:
-"""
+        
+        Laboratory Tests Schedule:
+    """
     for test in treatment_dir['monitoring_schedule']['laboratory_tests']:
         plan_text += f"""
-- {test['test']}
-  Frequency: {test['frequency']}
-  Targets: {test.get('targets', test.get('target', 'As per physician'))}
-"""
+        - {test['test']}
+          Frequency: {test['frequency']}
+          Targets: {test.get('targets', test.get('target', 'As per physician'))}
+        """
     
     plan_text += f"""
 
-PSYCHOLOGICAL SUPPORT
-{'='*20}
-"""
+        PSYCHOLOGICAL SUPPORT
+        {'='*20}
+    """
     for intervention in treatment_dir['psychological_support']['interventions']:
         plan_text += f"""
-- {intervention['type']}
-"""
+            - {intervention['type']}
+        """
         if 'recommendation' in intervention:
             plan_text += f"  Recommendation: {intervention['recommendation']}\n"
         if 'apps' in intervention:
             plan_text += f"  Recommended Apps: {intervention['apps']}\n"
     
     plan_text += f"""
-
-IMPORTANT DISCLAIMERS:
-{'='*20}
-• This treatment plan is generated for educational purposes only
-• All medical decisions must be made in consultation with qualified healthcare professionals
-• Do not start, stop, or modify any treatments without medical supervision
-• In case of emergency, call 911 immediately
-• Keep this plan updated with your healthcare provider
-
-Generated on: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
-"""
+        IMPORTANT DISCLAIMERS:
+        {'='*20}
+        • This treatment plan is generated for educational purposes only
+        • All medical decisions must be made in consultation with qualified healthcare professionals
+        • Do not start, stop, or modify any treatments without medical supervision
+        • Keep this plan updated with your healthcare provider
+        
+        Generated on: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
+    """
     
     return plan_text
