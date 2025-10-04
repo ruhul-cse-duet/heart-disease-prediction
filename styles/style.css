@@ -22,7 +22,26 @@
 .block-container h4, .block-container h5 {
   letter-spacing:.2px;
 }
-
+.st-emotion-cache-pd6qx2 {
+    display: inline-flex;
+    -webkit-box-align: center;
+    align-items: center;
+    color: rgb(239 191 10 / 81%);
+    font-size: 2.5rem;
+    width: 4.5rem;
+    height: 2.5rem;
+    user-select: none;
+    font-family: "Material Symbols Rounded";
+    font-weight: 500;
+    font-style: normal;
+    line-height: 1;
+    letter-spacing: normal;
+    text-transform: none;
+    white-space: nowrap;
+    overflow-wrap: normal;
+    direction: ltr;
+    -webkit-font-smoothing: antialiased;
+}
 .center-button {
     display: flex;
     justify-content: center;
