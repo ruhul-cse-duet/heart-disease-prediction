@@ -1,3 +1,28 @@
+/* -------- Global tokens -------- */
+:root{
+  --crit-bg: #fff5f5;
+  --crit-br: #fecaca;
+  --crit-text: #7f1d1d;
+  --crit-icon: #dc2626;
+  --crit-shadow: 0 10px 24px rgba(220,38,38,.12);
+
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --crit-bg: #1a0f10;
+    --crit-br: #5a1c1f;
+    --crit-text: #fecaca;
+    --crit-icon: #f87171;
+    --crit-shadow: 0 10px 24px rgba(0,0,0,.45);
+
+  }
+}
+
+/* -------- Section headings -------- */
+.block-container h4, .block-container h5 {
+  letter-spacing:.2px;
+}
+
 .center-button {
     display: flex;
     justify-content: center;
@@ -23,10 +48,12 @@
     }
 
 .sub-header {
-    font-size: 14px;
+    font-size: 18px !important;
     color: #EAF531;
-    margin-bottom: 2rem;
-    }
+    margin-bottom: 1rem;
+    font-weight: 600;
+    margin-top: 10px !important;
+}
 
 .prediction-box {
      padding: 1.5rem;
@@ -52,10 +79,10 @@
     }
 
 .treatment-box {
-     background-color: #f8f9fa;
+     background-color: #AFD439;
      border: 1px solid #dee2e6;
      border-radius: 8px;
-     padding: 1.2rem;
+     padding: 1rem;
      margin: 0.5rem 0;
      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
   }
@@ -66,24 +93,25 @@
     }
 
 .stTabs [data-baseweb="tab"] {
-     height: 50px;
-     padding-left: 15px;
+     height: 40px;
+     padding-left: 12px;
      padding-right: 15px;
      border-radius: 8px;
-     background-color: #f1f3f4;
+     background-color: #5D6951;
      border: 1px solid #e0e0e0;
+     color:#CEDE1B
     }
 
 .stTabs [aria-selected="true"] {
         background-color: #e74c3c;
-        color: white;
+        color: #AFD439;
         border: 1px solid #e74c3c;
     }
 
 /* Priority badges */
 .priority-immediate {
         background-color: #dc3545;
-        color: white;
+        color: #050505;
         padding: 2px 8px;
         border-radius: 12px;
         font-size: 0.8rem;
@@ -119,7 +147,7 @@
 /* Enhanced card styling */
 .treatment-card {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
+        color: #050505;
         padding: 1rem;
         border-radius: 10px;
         margin: 0.5rem 0;
@@ -142,4 +170,106 @@
     border-radius: 10px;
     margin: 0.5rem 0;
     box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+.st-emotion-cache-ua1rfn {
+    color: #efd23d;
+    word-break: break-word;
+    text-wrap: pretty;
+}
+.st-emotion-cache-ua1rfn {
+    padding-left: 18px;
+    padding-top: 4px;
+    color: #efd23d;
+    background: #7c7c7c;
+    word-break: break-word;
+    text-wrap: pretty;
+    min-height: 45px;
+    margin-bottom: 10px;
+    border-radius: 8px;
+}
+[data-testid="stHeader"] {
+    background-color: #cdbfcc;
+}
+/* -------- Make every st.metric look like a card -------- */
+div[data-testid="stMetric"]{
+  background: #3B3534 !important;
+  border: 1px solid var(--card-br);
+  border-radius: 8px;
+  padding: 4px 4px;
+  transition: transform .08s ease, box-shadow .2s ease;
+  min-height: 94px;
+  width: 120px;
+  text-align: center;
+  color:#E9F540 !important
+}
+.st-emotion-cache-3qzj0x {
+    margin-left: 3px;
+    text-align: center;
+    font-family: "Source Sans", sans-serif;
+    font-size: 1.1rem;
+    color: #ffca00;
+    max-width: 100%;
+    overflow-wrap: break-word;
+}
+
+div[data-testid="stMetric"]:hover{
+  transform: translateY(-1px);
+  box-shadow: 0 8px 10px rgba(2, 8, 23, .10);
+}
+
+/* Label (title) */
+div[data-testid="stMetric"] [data-testid="stMetricLabel"]{
+  font-weight: 600;
+  letter-spacing:.1px;
+  margin-bottom: 5px;
+  margin-top:8px;
+  margin-left:5px;
+  color:#E9F540 !important
+  text-align: center;
+}
+
+/* Value */
+div[data-testid="stMetric"] [data-testid="stMetricValue"]{
+  font-weight: 500;
+  font-size: 1.5rem;
+  line-height: 1.8;
+  margin-left:5px;
+  text-align: center;
+  color:#E9F540
+}
+
+/* Delta (optional) – keep tidy */
+div[data-testid="stMetricDelta"]{
+  margin-top: 6px;
+}
+
+/* Critical text --------------------- */
+.crit-box{
+  background: var(--crit-bg);
+  border: 1px solid var(--crit-br);
+  border-left: 6px solid var(--crit-icon);
+  border-radius: 10px;
+  padding: 10px 12px 10px 10px;
+  box-shadow: var(--crit-shadow);
+  display: grid;
+  grid-template-columns: 28px 1fr;
+  gap: 10px;
+  align-items: start;
+}
+
+/* Icon circle */
+.crit-icon{
+  width: 28px; height: 28px; border-radius: 50%;
+  background: var(--crit-icon);
+  color: #fff; display:flex; align-items:center; justify-content:center;
+  font-weight: 900; line-height: 1; user-select:none;
+}
+
+/* Text */
+.crit-content{
+  color: var(--crit-text);
+  font-size: .96rem;
+}
+.crit-content strong{
+  font-weight: 800;
 }

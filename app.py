@@ -454,7 +454,17 @@ def main():
                         st.markdown('</div>', unsafe_allow_html=True)
                     
                     # Critical warning
-                    st.markdown("⚠️ **CRITICAL DISCLAIMER**: This treatment directory is for educational purposes only. All medical decisions must be made in consultation with qualified healthcare professionals. Do not start, stop, or modify any treatments without medical supervision.")
+                    st.markdown("""
+                    <div class="crit-box">
+                      <div class="crit-icon">!</div>
+                      <div class="crit-content">
+                        <div class="crit-title">CRITICAL DISCLAIMER</div>
+                        This treatment directory is for educational purposes only. All medical decisions must be
+                        made in consultation with qualified healthcare professionals. Do not start, stop, or modify
+                        any treatments without medical supervision.
+                      </div>
+                    </div>
+                    """, unsafe_allow_html=True)
 
 
 #----------------------------# Download treatment plan--------------------------------------
@@ -512,13 +522,29 @@ def main():
 
 
         df = pd.read_csv("./dataset/CVD_2021_BRFSS.csv")
+        total_records = len(df)
+        heart_disease_cases = int((df["Heart_Disease"] == "Yes").sum())
+        no_disease_cases = total_records - heart_disease_cases
+        risk_rate = (heart_disease_cases / total_records * 100) if total_records else 0.0
+        #feature_count = df.shape[1] - (1 if "Heart_Disease" in df.columns else 0)
         # Statistics
         st.markdown("##### 📊 Dataset Statistics")
-        total_records = len(df)
-        heart_disease_cases = len(df[df['Heart_Disease'] == 'Yes'])
-        st.metric("Total Records", f"{total_records:,}")
-        st.metric("Heart Disease Cases", f"{heart_disease_cases:,}")
-        st.metric("Risk Rate", f"{(heart_disease_cases/total_records)*100:.1f}%")
+
+        # row-1
+        c1, c2 = st.columns(2)
+        with c1:
+            st.metric("Total Records", f"{total_records:,}")
+        with c2:
+            st.metric("Heart Disease", f"{heart_disease_cases:,}")
+
+        # row -2
+        c3,c4 = st.columns(2)
+        with c3:
+            st.metric("Risk Rate", f"{risk_rate:.2f}%")
+        with c4:
+            st.metric("No Disease", f"{no_disease_cases:,}")
+
+
 
 if __name__ == "__main__":
     main()
