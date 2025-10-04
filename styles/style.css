@@ -187,6 +187,15 @@
     margin-bottom: 10px;
     border-radius: 8px;
 }
+.st-emotion-cache-3uj0rx {
+    font-family: "Source Sans", sans-serif;
+    font-size: 1rem;
+    margin-bottom: -1rem;
+    color: inherit;
+    max-width: 100%;
+    overflow-wrap: break-word;
+}
+
 [data-testid="stHeader"] {
     background-color: #cdbfcc;
 }
